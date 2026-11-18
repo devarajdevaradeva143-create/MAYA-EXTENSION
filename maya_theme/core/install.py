@@ -33,6 +33,17 @@ def install_theme_files() -> None:
             if dst.exists():
                 shutil.rmtree(dst)
             shutil.copytree(src, dst)
+    # color schemes into KDE color-schemes dir
+    cs_dir = Path.home() / ".local" / "share" / "color-schemes"
+    cs_dir.mkdir(parents=True, exist_ok=True)
+    for cs in (THEME_SRC / "colors").glob("*.colors"):
+        shutil.copy2(cs, cs_dir / cs.name)
+    # KCM desktop entry
+    kcm_src = Path(__file__).resolve().parents[1] / "kcm" / "maya-settings.desktop"
+    if kcm_src.exists():
+        dst_dir = Path.home() / ".local" / "share" / "kservices6"
+        dst_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(kcm_src, dst_dir / "maya-settings.desktop")
 
 
 def apply_config(cfg: dict) -> None:

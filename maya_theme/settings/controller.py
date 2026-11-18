@@ -9,6 +9,7 @@ from PySide6.QtCore import QObject, Property, Signal, Slot
 
 from maya_theme.core import backup, compat, install
 from maya_theme.core.config import load_config, save_config, DEFAULT_CONFIG
+from maya_theme.core.undo import UndoStack
 
 
 class SettingsController(QObject):
@@ -17,6 +18,8 @@ class SettingsController(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._cfg = load_config()
+        self._history: list = []
+        self._future: list = []
 
     # ---- generic accessors ----
     def _g(self, *keys, default=None):
@@ -29,10 +32,38 @@ class SettingsController(QObject):
         return d
 
     def _s(self, value, *keys):
+        import copy
+
+        self._history.append(copy.deepcopy(self._cfg))
+        self._future.clear()
+        if len(self._history) > 50:
+            self._history.pop(0)
         d = self._cfg
         for k in keys[:-1]:
             d = d.setdefault(k, {})
         d[keys[-1]] = value
+        save_config(self._cfg)
+        self.configChanged.emit()
+
+    @Slot()
+    def undo(self):
+        if not self._history:
+            return
+        import copy
+
+        self._future.append(copy.deepcopy(self._cfg))
+        self._cfg = self._history.pop()
+        save_config(self._cfg)
+        self.configChanged.emit()
+
+    @Slot()
+    def redo(self):
+        if not self._future:
+            return
+        import copy
+
+        self._history.append(copy.deepcopy(self._cfg))
+        self._cfg = self._future.pop()
         save_config(self._cfg)
         self.configChanged.emit()
 

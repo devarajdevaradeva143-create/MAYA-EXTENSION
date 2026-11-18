@@ -1,0 +1,14 @@
+{
+  "app_name": "Maya Extension",
+  "tagline": "local only • your assistant",
+  "settings": {
+    "glass": "Glass",
+    "theme": "Theme",
+    "scope": "Scope",
+    "performance": "Performance",
+    "monitor": "Monitor",
+    "wallpaper": "Wallpaper",
+    "privacy": "Privacy",
+    "about": "About"
+  }
+}

@@ -68,6 +68,54 @@ def cmd_settings(args) -> int:
     return 0
 
 
+def cmd_monitor(args) -> int:
+    import json
+    from maya_theme.monitor.metrics import collect, to_dict
+
+    print(json.dumps(to_dict(collect()), indent=2))
+    return 0
+
+
+def cmd_wallpaper(args) -> int:
+    from maya_theme.core import wallpaper
+
+    if args.wpcmd == "list":
+        for w in wallpaper.list_wallpapers():
+            print(w)
+        return 0
+    if args.wpcmd == "set":
+        if not args.path:
+            print("path required")
+            return 1
+        print(wallpaper.set_wallpaper(args.path))
+        return 0
+    if args.wpcmd == "next":
+        print(wallpaper.slideshow_next())
+        return 0
+    if args.wpcmd == "upload":
+        if not args.path:
+            print("path required")
+            return 1
+        print(wallpaper.upload_custom(args.path))
+        return 0
+    return 0
+
+
+def cmd_voice(args) -> int:
+    from maya_theme.core import voice
+
+    text = " ".join(args.text)
+    print(voice.handle_command(text))
+    return 0
+
+
+def cmd_panel(args) -> int:
+    from maya_theme.core import panel
+
+    print(panel.apply_centered_panel())
+    return 0
+
+
 def cmd_update(args) -> int:
     sub = args.update_cmd
     if sub == "check":
@@ -99,6 +147,13 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("status", help="Show state + version")
     sub.add_parser("backup", help="Manual backup")
     sub.add_parser("settings", help="Open settings app")
+    sub.add_parser("monitor", help="Print live system metrics")
+    wp = sub.add_parser("wallpaper", help="Wallpaper management")
+    wp.add_argument("wpcmd", choices=["set", "next", "upload", "list"])
+    wp.add_argument("path", nargs="?")
+    sh = sub.add_parser("voice", help="Voice/AI command")
+    sh.add_argument("text", nargs="+")
+    sub.add_parser("panel", help="Apply centered panel layout")
 
     up = sub.add_parser("update", help="Update management")
     up.add_argument("update_cmd", choices=["check", "apply", "configure"])
@@ -135,6 +190,10 @@ def main(argv=None) -> int:
         "backup": cmd_backup,
         "settings": cmd_settings,
         "update": cmd_update,
+        "monitor": cmd_monitor,
+        "wallpaper": cmd_wallpaper,
+        "voice": cmd_voice,
+        "panel": cmd_panel,
     }
     return handlers[args.command](args)
 

@@ -1,0 +1,15 @@
+{
+  "KPackageStructure": "Plasma/Applet",
+  "KPlugin": {
+    "Id": "org.maya.shade",
+    "Name": "Maya Quick Settings Shade",
+    "Description": "Windows-style right-side quick settings shade",
+    "Version": "0.1.0",
+    "Author": "Maya",
+    "License": "MIT",
+    "Category": "Utilities",
+    "Icon": "settings-configure"
+  },
+  "X-Plasma-API": "declarativeappletscript",
+  "X-Plasma-MainScript": "ui/main.qml"
+}

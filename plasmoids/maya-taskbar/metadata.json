@@ -1,0 +1,15 @@
+{
+  "KPackageStructure": "Plasma/Applet",
+  "KPlugin": {
+    "Id": "org.maya.taskbar",
+    "Name": "Maya Pinned Apps Taskbar",
+    "Description": "Windows 11 style centered pinned apps taskbar",
+    "Version": "0.1.0",
+    "Author": "Maya",
+    "License": "MIT",
+    "Category": "Windows and Tasks",
+    "Icon": "task-attention"
+  },
+  "X-Plasma-API": "declarativeappletscript",
+  "X-Plasma-MainScript": "ui/main.qml"
+}

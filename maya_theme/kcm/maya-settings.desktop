@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Service
+X-KDE-ServiceTypes=KCModule
+X-KDE-Library=maya_settings
+X-KDE-ParentApp=kcontrol
+X-KDE-System-Settings-Parent-Category=appearance
+X-KDE-Weight=100
+Name=Maya Glass Theme
+Comment=Configure Maya liquid glass theme
+Icon=preferences-desktop-theme
+Categories=Qt;KDE;X-KDE-settings-appearance;

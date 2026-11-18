@@ -465,6 +465,14 @@ ApplicationWindow {
             Text { text: "Ready"; color: Qt.rgba(1,1,1,0.6); font.pixelSize: 11 }
             Item { Layout.fillWidth: true }
             Button {
+                text: "Undo"
+                onClicked: settings.undo()
+            }
+            Button {
+                text: "Redo"
+                onClicked: settings.redo()
+            }
+            Button {
                 text: "Apply"
                 onClicked: settings.applyTheme()
             }

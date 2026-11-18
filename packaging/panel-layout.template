@@ -1,0 +1,13 @@
+# Maya centered panel layout (import via Plasma panel settings)
+# Search bar: left corner
+# Pinned apps: centered
+# Settings, battery, date-time, notifications: right corner
+Panel:
+  position: bottom
+  alignment: center
+  height: 48
+  widgets:
+    - org.kde.plasma.search (left)
+    - org.maya.taskbar (center)
+    - org.kde.plasma.systemtray (right)
+    - org.kde.plasma.digitalclock (right)
