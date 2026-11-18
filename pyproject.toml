@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "maya-theme"
+version = "0.1.0"
+description = "Maya Extension — premium liquid glass theme for Fedora KDE Plasma"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "Maya" }]
+keywords = ["kde", "plasma", "theme", "glass", "morphism", "fedora"]
+classifiers = [
+    "Environment :: X11 Applications :: Qt",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "PySide6>=6.6",
+    "psutil>=5.9",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.4", "black>=24"]
+
+[project.scripts]
+maya-theme = "maya_theme.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["maya_theme*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

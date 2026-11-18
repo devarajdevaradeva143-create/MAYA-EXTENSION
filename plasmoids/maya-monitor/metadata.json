@@ -1,0 +1,15 @@
+{
+  "KPackageStructure": "Plasma/Applet",
+  "KPlugin": {
+    "Id": "org.maya.monitor",
+    "Name": "Maya System Monitor",
+    "Description": "Visual system monitoring widget (CPU/RAM/GPU/NPU/battery)",
+    "Version": "0.1.0",
+    "Author": "Maya",
+    "License": "MIT",
+    "Category": "System Information",
+    "Icon": "utilities-system-monitor"
+  },
+  "X-Plasma-API": "declarativeappletscript",
+  "X-Plasma-MainScript": "ui/main.qml"
+}

@@ -1,0 +1,12 @@
+{
+  "KPackageStructure": "Plasma/Theme",
+  "KPlugin": {
+    "Id": "maya-glass",
+    "Name": "Maya Glass",
+    "Description": "Premium liquid glass theme for Maya Extension",
+    "Version": "0.1.0",
+    "Author": "Maya",
+    "License": "MIT"
+  },
+  "X-Plasma-API": "5.0"
+}

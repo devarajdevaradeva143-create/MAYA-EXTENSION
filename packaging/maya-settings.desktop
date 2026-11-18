@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Maya Settings
+Comment=Maya Extension theme settings
+Exec=maya-theme settings
+Icon=preferences-desktop-theme
+Type=Application
+Categories=Settings;DesktopSettings;
+Terminal=false

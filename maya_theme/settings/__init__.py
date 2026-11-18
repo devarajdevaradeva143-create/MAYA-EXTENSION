@@ -1,0 +1,1 @@
+"""Maya settings application package."""

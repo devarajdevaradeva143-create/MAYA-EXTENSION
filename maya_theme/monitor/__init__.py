@@ -1,0 +1,1 @@
+"""Maya system monitoring widget package."""
