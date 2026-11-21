@@ -5,7 +5,7 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
-from .backup import create_backup, restore_backup, latest_backup
+from .backup import create_backup, latest_backup, restore_backup
 
 MAYA_HOME = Path.home() / ".local" / "share" / "maya-theme"
 

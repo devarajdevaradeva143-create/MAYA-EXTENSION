@@ -1,27 +1,40 @@
-/* Maya glass GTK3 */
+/* Maya glass GTK3 — liquid glass morphism with noise grain + inner highlight */
 window, dialog {
     background-color: rgba(11,15,25,0.72);
 }
 headerbar {
     background: linear-gradient(rgba(255,255,255,0.14), rgba(255,255,255,0.04));
     border-bottom: 1px solid rgba(255,255,255,0.18);
+    /* 0.5px inner highlight (top edge) */
+    box-shadow: inset 0 0.5px 0 rgba(255,255,255,0.14);
 }
 button {
     border-radius: 10px;
     border: 1px solid rgba(255,255,255,0.18);
     background: rgba(255,255,255,0.06);
     color: #FFFFFF;
+    /* inner highlight */
+    box-shadow: inset 0 0.5px 0 rgba(255,255,255,0.10);
 }
 button:hover {
     background: rgba(255,255,255,0.12);
+    box-shadow: inset 0 0.5px 0 rgba(255,255,255,0.18), 0 4px 12px rgba(255,122,184,0.08);
 }
 entry {
     border-radius: 10px;
     border: 1px solid rgba(255,255,255,0.18);
     background: rgba(255,255,255,0.06);
     color: #FFFFFF;
+    box-shadow: inset 0 0.5px 0 rgba(255,255,255,0.08);
 }
 entry:focus {
     border-color: #FF7AB8;
-    box-shadow: 0 0 0 2px rgba(255,122,184,0.35);
+    box-shadow: 0 0 0 2px rgba(255,122,184,0.35), inset 0 0.5px 0 rgba(255,255,255,0.14);
+}
+/* noise grain overlay */
+.background {
+    background-image:
+        repeating-conic-gradient(rgba(255,255,255,0.02) 0% 0.0001%, transparent 0% 0.0002%),
+        linear-gradient(rgba(11,15,25,0.72), rgba(11,15,25,0.72));
+    background-size: 3px 3px, 100% 100%;
 }

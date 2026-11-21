@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 import shutil
 import subprocess
 from dataclasses import dataclass
@@ -51,7 +50,6 @@ def detect() -> CompatReport:
     rep.plasma_version = _run(["plasmashell", "--version"])
     # Qt (from PySide6 since qmake may be absent)
     try:
-        from PySide6 import __version__ as _pv
         from PySide6.QtCore import qVersion
 
         rep.qt_version = qVersion()

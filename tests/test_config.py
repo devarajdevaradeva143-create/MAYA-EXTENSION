@@ -1,12 +1,9 @@
-import json
-import tempfile
-from pathlib import Path
 
 from maya_theme.core.config import (
-    load_config,
-    save_config,
     DEFAULT_CONFIG,
     GlassSpec,
+    load_config,
+    save_config,
 )
 
 

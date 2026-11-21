@@ -5,15 +5,15 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from PySide6.QtCore import QObject, Property, Signal, Slot
+from PySide6.QtCore import Property, QObject, Signal, Slot
 
 from maya_theme.core import backup, compat, install
-from maya_theme.core.config import load_config, save_config, DEFAULT_CONFIG
-from maya_theme.core.undo import UndoStack
+from maya_theme.core.config import DEFAULT_CONFIG, load_config, save_config
 
 
 class SettingsController(QObject):
     configChanged = Signal()
+    perfStatsChanged = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -206,6 +206,61 @@ class SettingsController(QObject):
     def monitorInterval(self, v):
         self._s(int(v), "monitor", "interval")
 
+    # wallpaper
+    @Property(str, notify=configChanged)
+    def wallpaperType(self):
+        return str(self._g("wallpaper", "type", default="static"))
+
+    @wallpaperType.setter
+    def wallpaperType(self, v):
+        self._s(str(v), "wallpaper", "type")
+
+    @Property(bool, notify=configChanged)
+    def wallpaperGlassBlur(self):
+        return bool(self._g("wallpaper", "glass_blur", default=True))
+
+    @wallpaperGlassBlur.setter
+    def wallpaperGlassBlur(self, v):
+        self._s(bool(v), "wallpaper", "glass_blur")
+
+    @Property(bool, notify=configChanged)
+    def wallpaperParallax(self):
+        return bool(self._g("wallpaper", "parallax", default=False))
+
+    @wallpaperParallax.setter
+    def wallpaperParallax(self, v):
+        self._s(bool(v), "wallpaper", "parallax")
+        try:
+            from maya_theme.core.wallpaper import enable_parallax
+            enable_parallax(v)
+        except Exception:
+            pass
+
+    @Property(bool, notify=configChanged)
+    def wallpaperAutoSwitch(self):
+        return bool(self._g("wallpaper", "auto_switch", default=False))
+
+    @wallpaperAutoSwitch.setter
+    def wallpaperAutoSwitch(self, v):
+        self._s(bool(v), "wallpaper", "auto_switch")
+
+    # performance live stats
+    @Property(float, notify=perfStatsChanged)
+    def perfCpu(self):
+        try:
+            from maya_theme.core.perf_monitor import get_monitor
+            return get_monitor().check()["metrics"]["cpu_percent"]
+        except Exception:
+            return 0.0
+
+    @Property(float, notify=perfStatsChanged)
+    def perfRam(self):
+        try:
+            from maya_theme.core.perf_monitor import get_monitor
+            return get_monitor().check()["metrics"]["ram_mb"]
+        except Exception:
+            return 0.0
+
     # privacy
     @Property(bool, notify=configChanged)
     def updateChecks(self):
@@ -259,3 +314,67 @@ class SettingsController(QObject):
         self._cfg = json.loads(json.dumps(DEFAULT_CONFIG))
         save_config(self._cfg)
         self.configChanged.emit()
+
+    # ---- wallpaper slots ----
+    @Slot()
+    def pickWallpaper(self):
+        try:
+            from PySide6.QtWidgets import QApplication, QFileDialog
+            app = QApplication.instance()
+            path, _ = QFileDialog.getOpenFileName(
+                None, "Select Wallpaper", str(Path.home()),
+                "Images (*.png *.jpg *.jpeg *.webp *.bmp);;Videos (*.mp4 *.webm *.mkv);;All files (*)"
+            )
+            if path:
+                from maya_theme.core.wallpaper import set_wallpaper
+                r = set_wallpaper(path, self._cfg)
+                if r.get("success"):
+                    self._cfg = load_config()
+                    self.configChanged.emit()
+        except Exception as e:
+            print(f"pickWallpaper error: {e}")
+
+    @Slot()
+    def nextWallpaper(self):
+        try:
+            from maya_theme.core.wallpaper import slideshow_next
+            r = slideshow_next(self._cfg)
+            if r.get("success"):
+                self._cfg = load_config()
+                self.configChanged.emit()
+        except Exception as e:
+            print(f"nextWallpaper error: {e}")
+
+    @Slot()
+    def generateWallpaperPack(self):
+        try:
+            from maya_theme.core.wallpaper import generate_themed_pack
+            out = generate_themed_pack()
+            print(f"Themed wallpaper pack generated: {out}")
+        except Exception as e:
+            print(f"generateWallpaperPack error: {e}")
+
+    # ---- performance ----
+    @Slot()
+    def perfCheck(self):
+        try:
+            from maya_theme.core.perf_monitor import get_monitor
+            mon = get_monitor()
+            r = mon.check()
+            self.perfStatsChanged.emit()
+            return r
+        except Exception:
+            return {}
+
+    @Slot()
+    def perfAutoBalance(self):
+        try:
+            from maya_theme.core.perf_monitor import get_monitor
+            mon = get_monitor()
+            r = mon.auto_apply_balanced()
+            if r.get("success"):
+                self._cfg = load_config()
+                self.configChanged.emit()
+            return r
+        except Exception:
+            return {}

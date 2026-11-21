@@ -1,6 +1,4 @@
 import json
-import tempfile
-from pathlib import Path
 
 from maya_theme.core import backup
 

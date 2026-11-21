@@ -7,12 +7,15 @@ ApplicationWindow {
     visible: true
     width: 1080
     height: 720
-    minimumWidth: 768
+    minimumWidth: 400
     title: "✦ Maya Settings"
     color: "#0B0F19"
 
     property int currentIndex: 0
     property string searchText: ""
+    // responsive: <768px → bottom tabs, single column (no sidebar)
+    property bool compactMode: win.width < 768
+    onWidthChanged: win.compactMode = win.width < 768
 
     // background gradient
     Rectangle {
@@ -27,10 +30,11 @@ ApplicationWindow {
         anchors.fill: parent
         spacing: 0
 
-        // ---- Sidebar ----
+        // ---- Sidebar (hidden in compact mode) ----
         Rectangle {
             Layout.preferredWidth: 240
             Layout.fillHeight: true
+            visible: !win.compactMode
             color: Qt.rgba(1, 1, 1, 0.04)
             border.width: 1
             border.color: Qt.rgba(1, 1, 1, 0.08)
@@ -295,7 +299,7 @@ ApplicationWindow {
 
                     GlassCard {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 200
+                        Layout.preferredHeight: 280
                         ColumnLayout {
                             anchors.fill: parent
                             spacing: 12
@@ -313,6 +317,54 @@ ApplicationWindow {
                             RowLayout {
                                 Text { text: "Auto-reduce blur on low battery"; color: "#FFFFFF"; Layout.fillWidth: true }
                                 Switch { checked: settings.autoReduceBlur; onToggled: settings.autoReduceBlur = checked }
+                            }
+
+                            Item { height: 8 }
+
+                            // Live usage display
+                            Text { text: "Live usage"; font.bold: true; color: "#FFFFFF"; font.pixelSize: 14 }
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 16
+                                Text { text: "CPU"; color: Qt.rgba(1,1,1,0.6); font.pixelSize: 11 }
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    height: 8
+                                    radius: 4
+                                    color: Qt.rgba(1,1,1,0.1)
+                                    Rectangle {
+                                        width: parent.width * Math.min(1.0, settings.perfCpu / 100.0)
+                                        height: parent.height
+                                        radius: 4
+                                        color: settings.perfCpu > 5 ? "#F87171" : "#4ADE80"
+                                    }
+                                }
+                                Text { text: Math.round(settings.perfCpu) + "%"; color: "#FFFFFF"; font.pixelSize: 11; width: 40 }
+                            }
+                            RowLayout {
+                                Layout.fillWidth: true
+                                spacing: 16
+                                Text { text: "RAM"; color: Qt.rgba(1,1,1,0.6); font.pixelSize: 11 }
+                                Rectangle {
+                                    Layout.fillWidth: true
+                                    height: 8
+                                    radius: 4
+                                    color: Qt.rgba(1,1,1,0.1)
+                                    Rectangle {
+                                        width: parent.width * Math.min(1.0, settings.perfRam / 150.0)
+                                        height: parent.height
+                                        radius: 4
+                                        color: settings.perfRam > 120 ? "#FBBF24" : "#4ADE80"
+                                    }
+                                }
+                                Text { text: Math.round(settings.perfRam) + "MB"; color: "#FFFFFF"; font.pixelSize: 11; width: 50 }
+                            }
+                            Text {
+                                text: "Budget: CPU <2% · RAM <150MB. If exceeded for 30s, Maya suggests 'Balanced' mode."
+                                color: Qt.rgba(1,1,1,0.5)
+                                font.pixelSize: 10
+                                wrapMode: Text.WordWrap
+                                Layout.fillWidth: true
                             }
                         }
                     }
@@ -357,12 +409,57 @@ ApplicationWindow {
 
                     GlassCard {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 180
+                        Layout.preferredHeight: 280
                         ColumnLayout {
                             anchors.fill: parent
                             spacing: 10
                             Text { text: "Wallpaper"; font.bold: true; color: "#FFFFFF"; font.pixelSize: 16 }
-                            Text { text: "Wallpaper system (Phase 3). Configure type & custom upload here later."; color: Qt.rgba(1,1,1,0.6); wrapMode: Text.WordWrap; Layout.fillWidth: true }
+
+                            RowLayout {
+                                Text { text: "Type"; color: "#FFFFFF"; Layout.fillWidth: true }
+                                ComboBox {
+                                    id: wpTypeCombo
+                                    model: ["static", "animated", "slideshow"]
+                                    currentIndex: ["static","animated","slideshow"].indexOf(settings.wallpaperType)
+                                    onActivated: settings.wallpaperType = model[currentIndex]
+                                    Layout.preferredWidth: 160
+                                }
+                            }
+                            RowLayout {
+                                Text { text: "Glass blur on wallpaper"; color: "#FFFFFF"; Layout.fillWidth: true }
+                                Switch { checked: settings.wallpaperGlassBlur; onToggled: settings.wallpaperGlassBlur = checked }
+                            }
+                            RowLayout {
+                                Text { text: "Parallax effect"; color: "#FFFFFF"; Layout.fillWidth: true }
+                                Switch { checked: settings.wallpaperParallax; onToggled: settings.wallpaperParallax = checked }
+                            }
+                            RowLayout {
+                                Text { text: "Auto light/dark switch"; color: "#FFFFFF"; Layout.fillWidth: true }
+                                Switch { checked: settings.wallpaperAutoSwitch; onToggled: settings.wallpaperAutoSwitch = checked }
+                            }
+                            Item { height: 8 }
+                            RowLayout {
+                                spacing: 8
+                                Button {
+                                    text: "Set wallpaper…"
+                                    onClicked: settings.pickWallpaper()
+                                }
+                                Button {
+                                    text: "Next slideshow"
+                                    onClicked: settings.nextWallpaper()
+                                }
+                                Button {
+                                    text: "Generate themed pack"
+                                    onClicked: settings.generateWallpaperPack()
+                                }
+                            }
+                            Text {
+                                text: "Supports static images, animated video wallpapers (mp4/webm), and Maya-themed SVG packs."
+                                color: Qt.rgba(1,1,1,0.5)
+                                font.pixelSize: 11
+                                wrapMode: Text.WordWrap
+                                Layout.fillWidth: true
+                            }
                         }
                     }
                 }
@@ -452,9 +549,66 @@ ApplicationWindow {
         }
     }
 
+    // ---- Bottom tab bar (compact mode < 768px) ----
+    Rectangle {
+        visible: win.compactMode
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        height: 56
+        color: Qt.rgba(1, 1, 1, 0.08)
+        border.width: 1
+        border.color: Qt.rgba(1, 1, 1, 0.18)
+        z: 10
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.margins: 4
+            spacing: 0
+
+            Repeater {
+                model: [
+                    { label: "Glass", icon: "✦" },
+                    { label: "Theme", icon: "🎨" },
+                    { label: "Scope", icon: "🧩" },
+                    { label: "Perf", icon: "⚡" },
+                    { label: "Monitor", icon: "📊" },
+                    { label: "Wall", icon: "🖼" },
+                    { label: "Privacy", icon: "🔒" },
+                    { label: "About", icon: "ℹ" }
+                ]
+                delegate: Item {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Column {
+                        anchors.centerIn: parent
+                        spacing: 2
+                        Text {
+                            text: modelData.icon
+                            font.pixelSize: 18
+                            color: win.currentIndex === index ? "#FF7AB8" : Qt.rgba(1,1,1,0.6)
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+                        Text {
+                            text: modelData.label
+                            font.pixelSize: 9
+                            color: win.currentIndex === index ? "#FFFFFF" : Qt.rgba(1,1,1,0.5)
+                            anchors.horizontalCenter: parent.horizontalCenter
+                        }
+                    }
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: win.currentIndex = index
+                    }
+                }
+            }
+        }
+    }
+
     // ---- Status bar ----
     Rectangle {
-        anchors.bottom: parent.bottom
+        anchors.bottom: win.compactMode ? undefined : parent.bottom
+        anchors.bottomMargin: win.compactMode ? 56 : 0
         anchors.left: parent.left
         anchors.right: parent.right
         height: 36

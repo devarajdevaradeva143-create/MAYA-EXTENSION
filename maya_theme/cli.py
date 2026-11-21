@@ -9,7 +9,7 @@ from pathlib import Path
 
 from maya_theme import __version__
 from maya_theme.core import backup, compat, install, rollback, uninstall
-from maya_theme.core.config import load_config, save_config, MAYA_HOME
+from maya_theme.core.config import MAYA_HOME, load_config, save_config
 
 
 def _print(obj) -> None:
@@ -70,6 +70,7 @@ def cmd_settings(args) -> int:
 
 def cmd_monitor(args) -> int:
     import json
+
     from maya_theme.monitor.metrics import collect, to_dict
 
     print(json.dumps(to_dict(collect()), indent=2))
@@ -98,21 +99,75 @@ def cmd_wallpaper(args) -> int:
             return 1
         print(wallpaper.upload_custom(args.path))
         return 0
+    if args.wpcmd == "parallax":
+        if args.flag is None:
+            print("specify 'on' or 'off'")
+            return 1
+        print(wallpaper.enable_parallax(args.flag == "on"))
+        return 0
+    if args.wpcmd == "pack":
+        out = wallpaper.generate_themed_pack()
+        print(f"Themed wallpaper pack generated: {out}")
+        return 0
     return 0
 
 
 def cmd_voice(args) -> int:
     from maya_theme.core import voice
 
-    text = " ".join(args.text)
-    print(voice.handle_command(text))
-    return 0
+    if args.text:
+        text = " ".join(args.text)
+        result = voice.handle_command(text)
+        print(result.get("reply", result.get("error", "done")))
+        if not result.get("success"):
+            return 1
+        return 0
+    else:
+        print(voice.greet())
+        return 0
 
 
 def cmd_panel(args) -> int:
     from maya_theme.core import panel
 
     print(panel.apply_centered_panel())
+    return 0
+
+
+def cmd_safe_mode(args) -> int:
+    from maya_theme.core import safemode
+
+    if args.smcmd == "on":
+        p = safemode.enable_safe_mode()
+        print(f"Safe mode enabled. Flag: {p}")
+        return 0
+    if args.smcmd == "off":
+        existed = safemode.disable_safe_mode()
+        print(f"Safe mode disabled. Flag {'removed' if existed else 'was not set'}.")
+        return 0
+    if args.smcmd == "status":
+        _print(safemode.safe_mode_status())
+        return 0
+    if args.smcmd == "install-autostart":
+        p = safemode.install_autostart()
+        print(f"Autostart entry installed: {p}")
+        return 0
+    return 0
+
+
+def cmd_perf(args) -> int:
+    from maya_theme.core.perf_monitor import get_monitor
+
+    mon = get_monitor()
+    if args.perf_cmd == "check":
+        _print(mon.check())
+        return 0
+    if args.perf_cmd == "usage":
+        print(mon.format_usage())
+        return 0
+    if args.perf_cmd == "auto":
+        _print(mon.auto_apply_balanced())
+        return 0
     return 0
 
 
@@ -148,18 +203,27 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("backup", help="Manual backup")
     sub.add_parser("settings", help="Open settings app")
     sub.add_parser("monitor", help="Print live system metrics")
+
     wp = sub.add_parser("wallpaper", help="Wallpaper management")
-    wp.add_argument("wpcmd", choices=["set", "next", "upload", "list"])
-    wp.add_argument("path", nargs="?")
+    wp.add_argument("wpcmd", choices=["set", "next", "upload", "list", "parallax", "pack"])
+    wp.add_argument("path", nargs="?", help="Wallpaper path (for 'set'/'upload')")
+    wp.add_argument("--flag", choices=["on", "off"], help="Enable/disable parallax")
+
     sh = sub.add_parser("voice", help="Voice/AI command")
-    sh.add_argument("text", nargs="+")
+    sh.add_argument("text", nargs="*", help="Command text, e.g. 'dark mode'")
+
     sub.add_parser("panel", help="Apply centered panel layout")
+
+    sm = sub.add_parser("safe-mode", help="Safe mode management")
+    sm.add_argument("smcmd", choices=["on", "off", "status", "install-autostart"])
+
+    pf = sub.add_parser("perf", help="Performance budget monitor")
+    pf.add_argument("perf_cmd", choices=["check", "usage", "auto"])
 
     up = sub.add_parser("update", help="Update management")
     up.add_argument("update_cmd", choices=["check", "apply", "configure"])
     up.add_argument("--url", default=None, help="Manifest URL for configure")
 
-    # export/import
     ex = sub.add_parser("export", help="Export theme bundle")
     ex.add_argument("path", help="Output path (.json or .zip)")
     ex.add_argument("--wallpaper", action="store_true")
@@ -171,7 +235,6 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv=None) -> int:
     args = build_parser().parse_args(argv)
-    # handle export/import here
     if args.command == "export":
         out = Path(args.path)
         p = backup.export_bundle(out, include_wallpaper=args.wallpaper)
@@ -194,6 +257,8 @@ def main(argv=None) -> int:
         "wallpaper": cmd_wallpaper,
         "voice": cmd_voice,
         "panel": cmd_panel,
+        "safe-mode": cmd_safe_mode,
+        "perf": cmd_perf,
     }
     return handlers[args.command](args)
 
